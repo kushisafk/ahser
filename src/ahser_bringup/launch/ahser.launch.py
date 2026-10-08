@@ -7,6 +7,7 @@ from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -37,9 +38,10 @@ def generate_launch_description():
         pkg_ahser_description, 'urdf', 'ahser.urdf.xacro'
     ])
 
-    robot_description_content = Command([
-        'xacro ', xacro_file
-    ])
+    robot_description_content = ParameterValue(
+        Command(['xacro ', xacro_file]),
+        value_type=str
+    )
 
     robot_state_publisher_node = Node(
         package='robot_state_publisher',

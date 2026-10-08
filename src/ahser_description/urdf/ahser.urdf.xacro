@@ -1,12 +1,219 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="ahser">
-  <!-- AHSER: Autonomous Hospital Service Robot -->
-  <!-- Top-level robot description file -->
+  <!-- ==================================================================== -->
+  <!-- AHSER: Autonomous Hospital Service Robot                             -->
+  <!-- Top-Level System URDF / XACRO Description                            -->
+  <!-- ==================================================================== -->
 
-  <xacro:include filename="$(find ahser_description)/urdf/materials.xacro" />
-  <xacro:include filename="$(find ahser_description)/urdf/wheels.xacro" />
-  <xacro:include filename="$(find ahser_description)/urdf/sensors.xacro" />
+  <!-- ==================================================================== -->
+  <!-- Centralized Robot Dimensional & Mass Parameters (SI Metric Units)    -->
+  <!-- ==================================================================== -->
 
-  <!-- Base link frame definition (physical/visual geometry to be added in modeling phase) -->
-  <link name="base_link" />
+  <!-- Ground clearance and wheel parameters -->
+  <xacro:property name="wheel_radius" value="0.080"/>       <!-- 80 mm radius / 160 mm diameter -->
+  <xacro:property name="wheel_width" value="0.040"/>        <!-- 40 mm tread width -->
+  <xacro:property name="wheel_track" value="0.380"/>        <!-- 380 mm lateral track width between wheels -->
+  <xacro:property name="wheel_mass" value="0.80"/>          <!-- 0.80 kg per drive wheel -->
+
+  <xacro:property name="ground_clearance" value="0.030"/>   <!-- 30 mm chassis underside ground clearance -->
+  <xacro:property name="caster_radius" value="0.030"/>      <!-- 30 mm radius caster sphere (touches z=0) -->
+  <xacro:property name="caster_x_offset" value="0.180"/>    <!-- 180 mm fore/aft distance from axle -->
+  <xacro:property name="caster_mass" value="0.25"/>         <!-- 0.25 kg per caster assembly -->
+
+  <!-- Main chassis body parameters -->
+  <xacro:property name="chassis_length" value="0.480"/>     <!-- 480 mm front-to-back length -->
+  <xacro:property name="chassis_width" value="0.320"/>      <!-- 320 mm width (fits between wheels) -->
+  <xacro:property name="chassis_height" value="0.180"/>     <!-- 180 mm vertical height -->
+  <xacro:property name="chassis_mass" value="8.00"/>        <!-- 8.0 kg base chassis structure and battery -->
+
+  <!-- Upper medicine/storage compartment parameters -->
+  <xacro:property name="storage_length" value="0.340"/>     <!-- 340 mm storage cabinet length -->
+  <xacro:property name="storage_width" value="0.280"/>      <!-- 280 mm storage cabinet width -->
+  <xacro:property name="storage_height" value="0.260"/>     <!-- 260 mm storage cabinet height -->
+  <xacro:property name="storage_x_offset" value="-0.020"/>  <!-- Offset slightly aft for front sensor deck -->
+  <xacro:property name="storage_mass" value="3.50"/>        <!-- 3.5 kg payload compartment -->
+
+  <!-- Sensor parameters -->
+  <xacro:property name="lidar_radius" value="0.038"/>       <!-- 76 mm diameter LiDAR housing -->
+  <xacro:property name="lidar_height" value="0.040"/>       <!-- 40 mm LiDAR sensor height -->
+  <xacro:property name="lidar_mass" value="0.25"/>          <!-- 0.25 kg 2D LiDAR scanner -->
+  <xacro:property name="lidar_x_offset" value="0.060"/>     <!-- Forward-biased on roof for clear front view -->
+  <xacro:property name="lidar_z_offset"
+    value="${ground_clearance + chassis_height + storage_height + lidar_height / 2.0}"/>
+
+  <xacro:property name="camera_length" value="0.030"/>
+  <xacro:property name="camera_width" value="0.080"/>
+  <xacro:property name="camera_height" value="0.030"/>
+  <xacro:property name="camera_mass" value="0.10"/>
+  <xacro:property name="camera_x_offset" value="${chassis_length / 2.0 + camera_length / 2.0}"/>
+  <xacro:property name="camera_z_offset" value="${ground_clearance + chassis_height * 0.82}"/>
+
+  <xacro:property name="imu_size" value="0.025"/>
+  <xacro:property name="imu_height" value="0.008"/>
+  <xacro:property name="imu_mass" value="0.02"/>
+  <xacro:property name="imu_x_offset" value="0.000"/>
+  <xacro:property name="imu_z_offset" value="${ground_clearance + 0.020}"/>
+
+  <!-- ==================================================================== -->
+  <!-- Modular Includes                                                     -->
+  <!-- ==================================================================== -->
+  <xacro:include filename="$(find ahser_description)/urdf/materials.xacro"/>
+  <xacro:include filename="$(find ahser_description)/urdf/wheels.xacro"/>
+  <xacro:include filename="$(find ahser_description)/urdf/sensors.xacro"/>
+
+  <!-- ==================================================================== -->
+  <!-- Kinematic Base / Footprint Frames                                    -->
+  <!-- ==================================================================== -->
+
+  <!-- Root Link: base_link located at ground plane projection of drive axle -->
+  <link name="base_link"/>
+
+  <!-- base_footprint on ground plane z=0 (REP 120 standard) -->
+  <joint name="base_footprint_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="base_footprint"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="base_footprint"/>
+
+  <!-- ==================================================================== -->
+  <!-- Main Chassis Link & Joint                                            -->
+  <!-- ==================================================================== -->
+
+  <joint name="chassis_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="chassis_link"/>
+    <!-- Positioned above ground clearance -->
+    <origin xyz="0.0 0.0 ${ground_clearance + chassis_height / 2.0}" rpy="0 0 0"/>
+  </joint>
+
+  <link name="chassis_link">
+    <!-- Main white chassis body enclosure -->
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
+      </geometry>
+      <material name="hospital_white"/>
+    </visual>
+
+    <!-- Lower protective perimeter bumper / skirt -->
+    <visual>
+      <origin xyz="0 0 -${chassis_height * 0.35}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${chassis_length + 0.015} ${chassis_width + 0.015} ${chassis_height * 0.30}"/>
+      </geometry>
+      <material name="dark_grey"/>
+    </visual>
+
+    <!-- Medical teal accent beltline trim -->
+    <visual>
+      <origin xyz="0 0 ${chassis_height * 0.35}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${chassis_length + 0.006} ${chassis_width + 0.006} 0.015"/>
+      </geometry>
+      <material name="medical_teal"/>
+    </visual>
+
+    <!-- Physical collision bounding box -->
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
+      </geometry>
+    </collision>
+
+    <!-- Chassis inertial tensor -->
+    <inertial>
+      <mass value="${chassis_mass}"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia
+        ixx="${(chassis_mass / 12.0) * (chassis_width * chassis_width + chassis_height * chassis_height)}"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="${(chassis_mass / 12.0) * (chassis_length * chassis_length + chassis_height * chassis_height)}"
+        iyz="0.0"
+        izz="${(chassis_mass / 12.0) * (chassis_length * chassis_length + chassis_width * chassis_width)}"/>
+    </inertial>
+  </link>
+
+  <!-- ==================================================================== -->
+  <!-- Upper Medicine / Supply Storage Compartment                          -->
+  <!-- ==================================================================== -->
+
+  <joint name="storage_compartment_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="storage_compartment_link"/>
+    <!-- Stacked directly upon the chassis top surface -->
+    <origin xyz="${storage_x_offset} 0.0 ${ground_clearance + chassis_height + storage_height / 2.0}" rpy="0 0 0"/>
+  </joint>
+
+  <link name="storage_compartment_link">
+    <!-- Storage cabinet exterior body -->
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${storage_length} ${storage_width} ${storage_height}"/>
+      </geometry>
+      <material name="hospital_white"/>
+    </visual>
+
+    <!-- Front medicine delivery door face with medical teal styling -->
+    <visual>
+      <origin xyz="${storage_length / 2.0 + 0.002} 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.004 ${storage_width * 0.85} ${storage_height * 0.80}"/>
+      </geometry>
+      <material name="medical_teal"/>
+    </visual>
+
+    <!-- Storage door latch / handle visual indicator -->
+    <visual>
+      <origin xyz="${storage_length / 2.0 + 0.006} ${storage_width * 0.3} 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.008 0.015 0.080"/>
+      </geometry>
+      <material name="dark_grey"/>
+    </visual>
+
+    <!-- Physical collision bounding box -->
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${storage_length} ${storage_width} ${storage_height}"/>
+      </geometry>
+    </collision>
+
+    <!-- Storage compartment inertial tensor -->
+    <inertial>
+      <mass value="${storage_mass}"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia
+        ixx="${(storage_mass / 12.0) * (storage_width * storage_width + storage_height * storage_height)}"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="${(storage_mass / 12.0) * (storage_length * storage_length + storage_height * storage_height)}"
+        iyz="0.0"
+        izz="${(storage_mass / 12.0) * (storage_length * storage_length + storage_width * storage_width)}"/>
+    </inertial>
+  </link>
+
+  <!-- ==================================================================== -->
+  <!-- Wheels: Powered Drive Wheels & Passive Stability Casters             -->
+  <!-- ==================================================================== -->
+
+  <!-- Left & Right Differential Drive Wheels -->
+  <xacro:drive_wheel prefix="left" y_reflect="1"/>
+  <xacro:drive_wheel prefix="right" y_reflect="-1"/>
+
+  <!-- Front & Rear Passive Support Casters for balanced 4-point ground contact -->
+  <xacro:caster_wheel prefix="front" x_offset="${caster_x_offset}"/>
+  <xacro:caster_wheel prefix="rear" x_offset="-${caster_x_offset}"/>
+
+  <!-- ==================================================================== -->
+  <!-- Sensor Suite (LiDAR, RGB Camera, IMU)                                -->
+  <!-- ==================================================================== -->
+  <xacro:sensors/>
+
 </robot>

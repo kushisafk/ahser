@@ -1,19 +1,47 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <!-- AHSER Material Color Definitions -->
-  <material name="white">
-    <color rgba="1.0 1.0 1.0 1.0"/>
+  <!-- ==================================================================== -->
+  <!-- AHSER Material & Color Definitions                                  -->
+  <!-- Clean, professional medical/service robot color palette             -->
+  <!-- ==================================================================== -->
+
+  <!-- Primary Chassis & Storage Body: Clean Hospital White -->
+  <material name="hospital_white">
+    <color rgba="0.92 0.94 0.96 1.0"/>
   </material>
 
+  <!-- Accent: Medical Service Teal/Cyan for Doors & Brand Identification -->
+  <material name="medical_teal">
+    <color rgba="0.0 0.60 0.65 1.0"/>
+  </material>
+
+  <!-- Chassis Lower Skirt & Mechanical Mounts: Dark Graphite Grey -->
   <material name="dark_grey">
-    <color rgba="0.2 0.2 0.2 1.0"/>
+    <color rgba="0.22 0.22 0.25 1.0"/>
   </material>
 
-  <material name="hospital_blue">
-    <color rgba="0.0 0.45 0.73 1.0"/>
+  <!-- Secondary Trims & Structural Plates: Neutral Light Grey -->
+  <material name="light_grey">
+    <color rgba="0.75 0.77 0.80 1.0"/>
   </material>
 
-  <material name="black">
-    <color rgba="0.05 0.05 0.05 1.0"/>
+  <!-- Drive Wheel Tires: Durable Matte Rubber Black -->
+  <material name="wheel_black">
+    <color rgba="0.12 0.12 0.12 1.0"/>
+  </material>
+
+  <!-- Passive Caster Spheres: Smooth Low-Friction Metallic Steel -->
+  <material name="caster_metallic">
+    <color rgba="0.65 0.65 0.68 1.0"/>
+  </material>
+
+  <!-- Sensor Enclosures (LiDAR, Camera body): Matte Black -->
+  <material name="sensor_black">
+    <color rgba="0.10 0.10 0.10 1.0"/>
+  </material>
+
+  <!-- Optical Lenses & Display Panel: Tinted Obsidian -->
+  <material name="lens_glass">
+    <color rgba="0.05 0.05 0.08 1.0"/>
   </material>
 </robot>

@@ -1,5 +1,149 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <!-- AHSER Sensor Definitions -->
-  <!-- LiDAR, Depth Camera, and IMU macros will be implemented in the robot modeling phase -->
+  <!-- ==================================================================== -->
+  <!-- AHSER Perception & Localization Sensor Suite                        -->
+  <!-- Frames and primitive visual/collision models for LiDAR, Camera, IMU  -->
+  <!-- ==================================================================== -->
+
+  <xacro:macro name="sensors">
+    <!-- Top-Mounted 2D Planar LiDAR -->
+    <joint name="lidar_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="lidar_link"/>
+      <!-- Elevated on the roof of the upper storage compartment for 360-deg FOV -->
+      <origin xyz="${lidar_x_offset} 0.0 ${lidar_z_offset}" rpy="0 0 0"/>
+    </joint>
+
+    <link name="lidar_link">
+      <!-- LiDAR Base Collar -->
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${lidar_radius}" length="${lidar_height}"/>
+        </geometry>
+        <material name="sensor_black"/>
+      </visual>
+
+      <!-- LiDAR Rotating Optical Head Accent -->
+      <visual>
+        <origin xyz="0 0 ${lidar_height * 0.25}" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${lidar_radius * 0.9}" length="${lidar_height * 0.4}"/>
+        </geometry>
+        <material name="medical_teal"/>
+      </visual>
+
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${lidar_radius}" length="${lidar_height}"/>
+        </geometry>
+      </collision>
+
+      <inertial>
+        <mass value="${lidar_mass}"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia
+          ixx="${(lidar_mass / 12.0) * (3.0 * lidar_radius * lidar_radius + lidar_height * lidar_height)}"
+          ixy="0.0"
+          ixz="0.0"
+          iyy="${(lidar_mass / 12.0) * (3.0 * lidar_radius * lidar_radius + lidar_height * lidar_height)}"
+          iyz="0.0"
+          izz="${(lidar_mass / 2.0) * (lidar_radius * lidar_radius)}"/>
+      </inertial>
+    </link>
+
+    <!-- Front-Facing RGB Perception Camera -->
+    <joint name="camera_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="camera_link"/>
+      <!-- Mounted on the upper-front brow of the chassis facing forward (+X) -->
+      <origin xyz="${camera_x_offset} 0.0 ${camera_z_offset}" rpy="0 0 0"/>
+    </joint>
+
+    <link name="camera_link">
+      <!-- Camera Body Enclosure -->
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="${camera_length} ${camera_width} ${camera_height}"/>
+        </geometry>
+        <material name="sensor_black"/>
+      </visual>
+
+      <!-- Camera Lens Barrel -->
+      <visual>
+        <origin xyz="${camera_length / 2.0 + 0.003} 0 0" rpy="0 ${pi/2} 0"/>
+        <geometry>
+          <cylinder radius="${camera_height * 0.3}" length="0.006"/>
+        </geometry>
+        <material name="lens_glass"/>
+      </visual>
+
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="${camera_length} ${camera_width} ${camera_height}"/>
+        </geometry>
+      </collision>
+
+      <inertial>
+        <mass value="${camera_mass}"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia
+          ixx="${(camera_mass / 12.0) * (camera_width * camera_width + camera_height * camera_height)}"
+          ixy="0.0"
+          ixz="0.0"
+          iyy="${(camera_mass / 12.0) * (camera_length * camera_length + camera_height * camera_height)}"
+          iyz="0.0"
+          izz="${(camera_mass / 12.0) * (camera_length * camera_length + camera_width * camera_width)}"/>
+      </inertial>
+    </link>
+
+    <!-- Standard ROS Camera Optical Frame (Z forward, X right, Y down) -->
+    <joint name="camera_optical_joint" type="fixed">
+      <parent link="camera_link"/>
+      <child link="camera_optical_link"/>
+      <origin xyz="0 0 0" rpy="-${pi/2} 0 -${pi/2}"/>
+    </joint>
+
+    <link name="camera_optical_link"/>
+
+    <!-- Inertial Measurement Unit (IMU) -->
+    <joint name="imu_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="imu_link"/>
+      <!-- Positioned close to the geometric center and drive axle -->
+      <origin xyz="${imu_x_offset} 0.0 ${imu_z_offset}" rpy="0 0 0"/>
+    </joint>
+
+    <link name="imu_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="${imu_size} ${imu_size} ${imu_height}"/>
+        </geometry>
+        <material name="dark_grey"/>
+      </visual>
+
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="${imu_size} ${imu_size} ${imu_height}"/>
+        </geometry>
+      </collision>
+
+      <inertial>
+        <mass value="${imu_mass}"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia
+          ixx="${(imu_mass / 12.0) * (imu_size * imu_size + imu_height * imu_height)}"
+          ixy="0.0"
+          ixz="0.0"
+          iyy="${(imu_mass / 12.0) * (imu_size * imu_size + imu_height * imu_height)}"
+          iyz="0.0"
+          izz="${(imu_mass / 12.0) * (imu_size * imu_size + imu_size * imu_size)}"/>
+      </inertial>
+    </link>
+  </xacro:macro>
 </robot>
