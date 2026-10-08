@@ -25,6 +25,21 @@
     <color rgba="0.75 0.77 0.80 1.0"/>
   </material>
 
+  <!-- Drive Wheel Non-Marking Medical Rubber Tire (slate grey base) -->
+  <material name="tire_rubber">
+    <color rgba="0.28 0.30 0.33 1.0"/>
+  </material>
+
+  <!-- Non-marking tire high-traction grip tread lugs -->
+  <material name="tire_tread">
+    <color rgba="0.12 0.13 0.15 1.0"/>
+  </material>
+
+  <!-- Wheel rim alloy / hub face -->
+  <material name="wheel_hub">
+    <color rgba="0.80 0.83 0.86 1.0"/>
+  </material>
+
   <!-- Drive Wheel Tires: Durable Matte Rubber Black -->
   <material name="wheel_black">
     <color rgba="0.12 0.12 0.12 1.0"/>

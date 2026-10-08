@@ -2,8 +2,22 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
   <!-- ==================================================================== -->
   <!-- AHSER Wheels & Mobile Base Locomotion Module                        -->
-  <!-- Differential drive powered wheels and passive caster support wheels  -->
+  <!-- High-traction non-marking hospital floor tires & passive casters     -->
   <!-- ==================================================================== -->
+
+  <!-- Macro: Realistic low-profile tire tread grip lug along wheel circumference -->
+  <xacro:macro name="tread_lug" params="angle">
+    <visual>
+      <origin
+        xyz="${(wheel_radius - 0.0005) * cos(angle)} 0 ${(wheel_radius - 0.0005) * sin(angle)}"
+        rpy="0 ${-angle} 0"/>
+      <geometry>
+        <!-- Sleek, subtle 0.5mm tread grip flush with tire surface (not spiked) -->
+        <box size="0.002 ${wheel_width + 0.001} 0.012"/>
+      </geometry>
+      <material name="tire_tread"/>
+    </visual>
+  </xacro:macro>
 
   <!-- Macro: Differential Drive Powered Wheel -->
   <xacro:macro name="drive_wheel" params="prefix y_reflect">
@@ -18,15 +32,78 @@
     </joint>
 
     <link name="${prefix}_wheel_link">
+      <!-- Main non-marking hospital grade rubber tire -->
       <visual>
-        <!-- Rotate cylinder from Z to Y axis -->
         <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
         <geometry>
           <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
         </geometry>
-        <material name="wheel_black"/>
+        <material name="tire_rubber"/>
       </visual>
 
+      <!-- Inner recessed wheel rim bed -->
+      <visual>
+        <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+        <geometry>
+          <cylinder radius="${wheel_radius * 0.65}" length="${wheel_width + 0.002}"/>
+        </geometry>
+        <material name="dark_grey"/>
+      </visual>
+
+      <!-- 8-segment high-traction grip tread pattern around perimeter (visible from top view) -->
+      <xacro:tread_lug angle="0"/>
+      <xacro:tread_lug angle="${pi/4}"/>
+      <xacro:tread_lug angle="${pi/2}"/>
+      <xacro:tread_lug angle="${3*pi/4}"/>
+      <xacro:tread_lug angle="${pi}"/>
+      <xacro:tread_lug angle="${-3*pi/4}"/>
+      <xacro:tread_lug angle="${-pi/2}"/>
+      <xacro:tread_lug angle="${-pi/4}"/>
+
+      <!-- Outer Wheel Rim & Hub Face (offset toward exterior) -->
+      <!-- Center hub cap -->
+      <visual>
+        <origin xyz="0 ${y_reflect * (wheel_width / 2.0 + 0.003)} 0" rpy="${pi/2} 0 0"/>
+        <geometry>
+          <cylinder radius="${wheel_radius * 0.25}" length="0.004"/>
+        </geometry>
+        <material name="wheel_hub"/>
+      </visual>
+
+      <!-- High-contrast alloy rim spokes for side-view rotational visibility -->
+      <visual>
+        <origin xyz="0 ${y_reflect * (wheel_width / 2.0 + 0.002)} 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="${wheel_radius * 1.15} 0.002 0.014"/>
+        </geometry>
+        <material name="wheel_hub"/>
+      </visual>
+
+      <visual>
+        <origin xyz="0 ${y_reflect * (wheel_width / 2.0 + 0.002)} 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.014 0.002 ${wheel_radius * 1.15}"/>
+        </geometry>
+        <material name="wheel_hub"/>
+      </visual>
+
+      <visual>
+        <origin xyz="0 ${y_reflect * (wheel_width / 2.0 + 0.002)} 0" rpy="0 ${pi/4} 0"/>
+        <geometry>
+          <box size="${wheel_radius * 1.15} 0.002 0.012"/>
+        </geometry>
+        <material name="medical_teal"/>
+      </visual>
+
+      <visual>
+        <origin xyz="0 ${y_reflect * (wheel_width / 2.0 + 0.002)} 0" rpy="0 ${-pi/4} 0"/>
+        <geometry>
+          <box size="${wheel_radius * 1.15} 0.002 0.012"/>
+        </geometry>
+        <material name="medical_teal"/>
+      </visual>
+
+      <!-- Physical collision cylinder (clean smooth cylindrical contact for simulation) -->
       <collision>
         <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
         <geometry>
