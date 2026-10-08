@@ -1,0 +1,34 @@
+# ROS 2 colcon build artifacts
+build/
+install/
+log/
+
+# Python cache & build files
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Testing & linting artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editor & IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.directory
+.claude/
+.gemini/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini

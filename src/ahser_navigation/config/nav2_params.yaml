@@ -1,0 +1,43 @@
+# AHSER Nav2 Configuration (Placeholder Skeleton)
+# Detailed costmap, planner, controller, and recovery behaviors will be configured
+# during the navigation integration phase.
+
+amcl:
+  ros__parameters:
+    use_sim_time: True
+    alpha1: 0.2
+    alpha2: 0.2
+    alpha3: 0.2
+    alpha4: 0.2
+    alpha5: 0.2
+    base_frame_id: "base_footprint"
+    global_frame_id: "map"
+    odom_frame_id: "odom"
+    scan_topic: "scan"
+
+bt_navigator:
+  ros__parameters:
+    use_sim_time: True
+    global_frame: "map"
+    robot_base_frame: "base_footprint"
+    odom_topic: "odom"
+
+controller_server:
+  ros__parameters:
+    use_sim_time: True
+    controller_frequency: 20.0
+    min_x_velocity_threshold: 0.001
+    min_y_velocity_threshold: 0.5
+    min_theta_velocity_threshold: 0.001
+
+planner_server:
+  ros__parameters:
+    use_sim_time: True
+    expected_planner_frequency: 20.0
+
+behavior_server:
+  ros__parameters:
+    use_sim_time: True
+    costmap_topic: "local_costmap/costmap_raw"
+    footprint_topic: "local_costmap/published_footprint"
+    cycle_frequency: 10.0

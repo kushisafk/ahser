@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="ahser">
+  <!-- AHSER: Autonomous Hospital Service Robot -->
+  <!-- Top-level robot description file -->
+
+  <xacro:include filename="$(find ahser_description)/urdf/materials.xacro" />
+  <xacro:include filename="$(find ahser_description)/urdf/wheels.xacro" />
+  <xacro:include filename="$(find ahser_description)/urdf/sensors.xacro" />
+
+  <!-- Base link frame definition (physical/visual geometry to be added in modeling phase) -->
+  <link name="base_link" />
+</robot>
