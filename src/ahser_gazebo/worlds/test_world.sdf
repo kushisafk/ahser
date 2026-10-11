@@ -1,7 +1,8 @@
 <?xml version="1.0" ?>
 <sdf version="1.8">
   <world name="test_world">
-    <physics name="1ms" type="ignored">
+    <!-- Physics configuration (DART engine, 1ms timestep) -->
+    <physics name="1ms" type="dart">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
     </physics>
@@ -25,11 +26,11 @@
       <render_engine>ogre2</render_engine>
     </plugin>
 
-    <!-- Sunlight -->
+    <!-- Directional Sunlight -->
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
       <pose>0 0 10 0 0 0</pose>
-      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <diffuse>0.85 0.85 0.85 1</diffuse>
       <specular>0.2 0.2 0.2 1</specular>
       <attenuation>
         <range>1000</range>
@@ -40,7 +41,7 @@
       <direction>-0.5 0.1 -0.9</direction>
     </light>
 
-    <!-- Ground Plane -->
+    <!-- Ground Plane (Subtle hospital-like neutral floor) -->
     <model name="ground_plane">
       <static>true</static>
       <link name="link">
@@ -51,6 +52,14 @@
               <size>100 100</size>
             </plane>
           </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
         </collision>
         <visual name="visual">
           <geometry>
@@ -60,12 +69,164 @@
             </plane>
           </geometry>
           <material>
-            <ambient>0.8 0.8 0.8 1</ambient>
-            <diffuse>0.8 0.8 0.8 1</diffuse>
-            <specular>0.8 0.8 0.8 1</specular>
+            <ambient>0.82 0.83 0.85 1</ambient>
+            <diffuse>0.82 0.83 0.85 1</diffuse>
+            <specular>0.3 0.3 0.3 1</specular>
           </material>
         </visual>
       </link>
     </model>
+
+    <!-- Test Arena Perimeter Boundary Walls (12m x 12m open testing arena) -->
+    <model name="arena_north_wall">
+      <static>true</static>
+      <pose>0 6.0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>12.2 0.2 1.0</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>12.2 0.2 1.0</size></box>
+          </geometry>
+          <material>
+            <ambient>0.75 0.77 0.80 1</ambient>
+            <diffuse>0.75 0.77 0.80 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="arena_south_wall">
+      <static>true</static>
+      <pose>0 -6.0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>12.2 0.2 1.0</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>12.2 0.2 1.0</size></box>
+          </geometry>
+          <material>
+            <ambient>0.75 0.77 0.80 1</ambient>
+            <diffuse>0.75 0.77 0.80 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="arena_east_wall">
+      <static>true</static>
+      <pose>6.0 0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 12.0 1.0</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>0.2 12.0 1.0</size></box>
+          </geometry>
+          <material>
+            <ambient>0.75 0.77 0.80 1</ambient>
+            <diffuse>0.75 0.77 0.80 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="arena_west_wall">
+      <static>true</static>
+      <pose>-6.0 0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 12.0 1.0</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>0.2 12.0 1.0</size></box>
+          </geometry>
+          <material>
+            <ambient>0.75 0.77 0.80 1</ambient>
+            <diffuse>0.75 0.77 0.80 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Static Test Obstacle 1: Box crate (NE quadrant) -->
+    <model name="test_obstacle_box">
+      <static>true</static>
+      <pose>2.5 2.0 0.35 0 0 0.3</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>0.7 0.7 0.7</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>0.7 0.7 0.7</size></box>
+          </geometry>
+          <material>
+            <ambient>0.0 0.55 0.65 1</ambient>
+            <diffuse>0.0 0.55 0.65 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Static Test Obstacle 2: Cylindrical column (NW quadrant) -->
+    <model name="test_obstacle_column">
+      <static>true</static>
+      <pose>-2.5 2.5 0.6 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <cylinder><radius>0.25</radius><length>1.2</length></cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder><radius>0.25</radius><length>1.2</length></cylinder>
+          </geometry>
+          <material>
+            <ambient>0.45 0.47 0.50 1</ambient>
+            <diffuse>0.45 0.47 0.50 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Static Test Obstacle 3: Partition divider (SE quadrant) -->
+    <model name="test_obstacle_partition">
+      <static>true</static>
+      <pose>1.5 -2.5 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 2.5 1.0</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>0.2 2.5 1.0</size></box>
+          </geometry>
+          <material>
+            <ambient>0.88 0.90 0.92 1</ambient>
+            <diffuse>0.88 0.90 0.92 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
   </world>
 </sdf>

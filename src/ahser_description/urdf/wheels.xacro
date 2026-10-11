@@ -124,6 +124,12 @@
           izz="${(wheel_mass / 12.0) * (3.0 * wheel_radius * wheel_radius + wheel_width * wheel_width)}"/>
       </inertial>
     </link>
+
+    <!-- Gazebo physics surface properties for powered drive wheel -->
+    <gazebo reference="${prefix}_wheel_link">
+      <mu1>1.0</mu1>
+      <mu2>1.0</mu2>
+    </gazebo>
   </xacro:macro>
 
   <!-- Macro: Passive Support Caster Wheel -->
@@ -174,5 +180,11 @@
           izz="${(2.0 / 5.0) * caster_mass * caster_radius * caster_radius}"/>
       </inertial>
     </link>
+
+    <!-- Low-friction surface for passive omnidirectional caster support -->
+    <gazebo reference="${prefix}_caster_link">
+      <mu1>0.001</mu1>
+      <mu2>0.001</mu2>
+    </gazebo>
   </xacro:macro>
 </robot>

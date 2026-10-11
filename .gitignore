@@ -32,3 +32,8 @@ htmlcov/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Local helper command text files
+commands.txt
+build_and_source.txt
+run_*.txt
