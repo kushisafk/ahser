@@ -1,18 +1,85 @@
-"""AHSER 2D SLAM Mapping Launch File using SLAM Toolbox."""
+"""AHSER 2D SLAM Mapping Launch File using SLAM Toolbox.
 
-import os
+Supports both fresh mapping from scratch and continuing mapping from an
+existing saved pose-graph (hospital_map.posegraph) so new rooms and corridors
+can be seamlessly appended to the existing map.
+"""
+
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import (
+    DeclareLaunchArgument,
+    EmitEvent,
+    LogInfo,
+    OpaqueFunction,
+    RegisterEventHandler,
+)
 from launch.conditions import IfCondition
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.events import matches_action
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
-from launch_ros.actions import Node
+from launch_ros.actions import LifecycleNode, Node
+from launch_ros.descriptions import ParameterFile
+from launch_ros.event_handlers import OnStateTransition
+from launch_ros.events.lifecycle import ChangeState
 from launch_ros.substitutions import FindPackageShare
+from lifecycle_msgs.msg import Transition
+
+
+def launch_slam_toolbox(context):
+    use_sim_time = LaunchConfiguration('use_sim_time').perform(context).lower() == 'true'
+    continue_mapping = LaunchConfiguration('continue_mapping').perform(context).lower() == 'true'
+    map_file_name = LaunchConfiguration('map_file_name').perform(context)
+    slam_params_file = LaunchConfiguration('slam_params_file').perform(context)
+
+    node_params = [
+        ParameterFile(slam_params_file, allow_substs=True),
+        {
+            'use_sim_time': use_sim_time,
+            'use_lifecycle_manager': False,
+        }
+    ]
+
+    if continue_mapping:
+        node_params.append({
+            'map_file_name': map_file_name,
+            'map_start_pose': [0.0, 0.0, 0.0],
+        })
+
+    slam_node = LifecycleNode(
+        package='slam_toolbox',
+        executable='async_slam_toolbox_node',
+        name='slam_toolbox',
+        output='screen',
+        parameters=node_params,
+        namespace=''
+    )
+
+    configure_event = EmitEvent(
+        event=ChangeState(
+            lifecycle_node_matcher=matches_action(slam_node),
+            transition_id=Transition.TRANSITION_CONFIGURE
+        )
+    )
+
+    activate_event = RegisterEventHandler(
+        OnStateTransition(
+            target_lifecycle_node=slam_node,
+            start_state='configuring',
+            goal_state='inactive',
+            entities=[
+                LogInfo(msg='[LifecycleLaunch] Slamtoolbox node is activating.'),
+                EmitEvent(event=ChangeState(
+                    lifecycle_node_matcher=matches_action(slam_node),
+                    transition_id=Transition.TRANSITION_ACTIVATE
+                ))
+            ]
+        )
+    )
+
+    return [slam_node, configure_event, activate_event]
 
 
 def generate_launch_description():
     pkg_ahser_navigation = FindPackageShare('ahser_navigation')
-    pkg_slam_toolbox = FindPackageShare('slam_toolbox')
 
     default_slam_params = PathJoinSubstitution([
         pkg_ahser_navigation, 'config', 'slam_toolbox.yaml'
@@ -20,8 +87,10 @@ def generate_launch_description():
     default_rviz_config = PathJoinSubstitution([
         pkg_ahser_navigation, 'rviz', 'mapping.rviz'
     ])
+    default_map_file = PathJoinSubstitution([
+        pkg_ahser_navigation, 'maps', 'hospital_map'
+    ])
 
-    # Declare launch arguments
     use_sim_time_arg = DeclareLaunchArgument(
         name='use_sim_time',
         default_value='true',
@@ -32,6 +101,18 @@ def generate_launch_description():
         name='slam_params_file',
         default_value=default_slam_params,
         description='Full path to the SLAM Toolbox parameters file'
+    )
+
+    continue_mapping_arg = DeclareLaunchArgument(
+        name='continue_mapping',
+        default_value='false',
+        description='Continue mapping from existing saved pose-graph if true'
+    )
+
+    map_file_name_arg = DeclareLaunchArgument(
+        name='map_file_name',
+        default_value=default_map_file,
+        description='Full path to pose-graph file (without .posegraph extension) for continuing SLAM'
     )
 
     use_rviz_arg = DeclareLaunchArgument(
@@ -46,20 +127,6 @@ def generate_launch_description():
         description='Full path to the RViz configuration file'
     )
 
-    # Include SLAM Toolbox online async mapping node with lifecycle autostart
-    slam_toolbox_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution([
-                pkg_slam_toolbox, 'launch', 'online_async_launch.py'
-            ])
-        ),
-        launch_arguments={
-            'use_sim_time': LaunchConfiguration('use_sim_time'),
-            'slam_params_file': LaunchConfiguration('slam_params_file'),
-        }.items()
-    )
-
-    # Launch RViz2 visualization for 2D mapping
     rviz_node = Node(
         package='rviz2',
         executable='rviz2',
@@ -75,8 +142,10 @@ def generate_launch_description():
     return LaunchDescription([
         use_sim_time_arg,
         slam_params_file_arg,
+        continue_mapping_arg,
+        map_file_name_arg,
         use_rviz_arg,
         rviz_config_arg,
-        slam_toolbox_launch,
+        OpaqueFunction(function=launch_slam_toolbox),
         rviz_node,
     ])
