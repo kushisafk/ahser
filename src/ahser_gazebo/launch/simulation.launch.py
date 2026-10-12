@@ -20,9 +20,16 @@ def generate_launch_description():
     pkg_ahser_description = FindPackageShare('ahser_description')
     pkg_ros_gz_sim = FindPackageShare('ros_gz_sim')
 
-    # Path to simulation assets
+    world_name_arg = DeclareLaunchArgument(
+        name='world_name',
+        default_value='hospital_world',
+        description='Name of the Gazebo world defined inside the SDF (e.g. hospital_world or test_world)'
+    )
+
+    # Path to simulation assets (defaults dynamically to world_name.sdf)
     default_world_path = PathJoinSubstitution([
-        pkg_ahser_gazebo, 'worlds', 'test_world.sdf'
+        pkg_ahser_gazebo, 'worlds',
+        PythonExpression(["'", LaunchConfiguration('world_name'), ".sdf'"])
     ])
     default_bridge_config_path = PathJoinSubstitution([
         pkg_ahser_gazebo, 'config', 'gazebo.yaml'
@@ -50,16 +57,23 @@ def generate_launch_description():
         description='Entity name for the spawned robot model in Gazebo'
     )
 
+    default_x = PythonExpression([
+        "'-15.0' if '", LaunchConfiguration('world_name'), "' == 'hospital_world' else '0.0'"
+    ])
+    default_y = PythonExpression([
+        "'1.0' if '", LaunchConfiguration('world_name'), "' == 'hospital_world' else '0.0'"
+    ])
+
     x_arg = DeclareLaunchArgument(
         name='x',
-        default_value='0.0',
-        description='Initial X position in world coordinates (meters)'
+        default_value=default_x,
+        description='Initial X position in world coordinates (meters) - starts in Control Room (-15.0m) for hospital world'
     )
 
     y_arg = DeclareLaunchArgument(
         name='y',
-        default_value='0.0',
-        description='Initial Y position in world coordinates (meters)'
+        default_value=default_y,
+        description='Initial Y position in world coordinates (meters) - starts in Control Room (1.0m) for hospital world'
     )
 
     z_arg = DeclareLaunchArgument(
@@ -121,7 +135,7 @@ def generate_launch_description():
         name='spawn_ahser',
         output='screen',
         arguments=[
-            '-world', 'test_world',
+            '-world', LaunchConfiguration('world_name'),
             '-name', LaunchConfiguration('robot_name'),
             '-topic', 'robot_description',
             '-x', LaunchConfiguration('x'),
@@ -144,6 +158,7 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        world_name_arg,
         world_arg,
         use_sim_time_arg,
         robot_name_arg,
