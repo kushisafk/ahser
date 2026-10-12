@@ -53,6 +53,37 @@
       </inertial>
     </link>
 
+    <!-- Gazebo Sensor: 2D Planar LiDAR -->
+    <gazebo reference="lidar_link">
+      <sensor name="lidar" type="gpu_lidar">
+        <gz_frame_id>lidar_link</gz_frame_id>
+        <topic>/scan</topic>
+        <update_rate>10</update_rate>
+        <ray>
+          <scan>
+            <horizontal>
+              <samples>360</samples>
+              <resolution>1</resolution>
+              <min_angle>-3.14159265</min_angle>
+              <max_angle>3.14159265</max_angle>
+            </horizontal>
+          </scan>
+          <range>
+            <min>0.12</min>
+            <max>12.0</max>
+            <resolution>0.01</resolution>
+          </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.01</stddev>
+          </noise>
+        </ray>
+        <always_on>1</always_on>
+        <visualize>true</visualize>
+      </sensor>
+    </gazebo>
+
     <!-- Front-Facing RGB Perception Camera -->
     <joint name="camera_joint" type="fixed">
       <parent link="base_link"/>
@@ -109,6 +140,35 @@
 
     <link name="camera_optical_link"/>
 
+    <!-- Gazebo Sensor: Front RGB-D Perception Camera -->
+    <gazebo reference="camera_link">
+      <sensor name="camera" type="rgbd_camera">
+        <gz_frame_id>camera_optical_link</gz_frame_id>
+        <topic>/camera</topic>
+        <update_rate>15</update_rate>
+        <camera>
+          <horizontal_fov>1.085</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>480</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>10.0</far>
+          </clip>
+          <depth_camera>
+            <clip>
+              <near>0.1</near>
+              <far>10.0</far>
+            </clip>
+          </depth_camera>
+        </camera>
+        <always_on>1</always_on>
+        <visualize>true</visualize>
+      </sensor>
+    </gazebo>
+
     <!-- Inertial Measurement Unit (IMU) -->
     <joint name="imu_joint" type="fixed">
       <parent link="base_link"/>
@@ -145,5 +205,137 @@
           izz="${(imu_mass / 12.0) * (imu_size * imu_size + imu_size * imu_size)}"/>
       </inertial>
     </link>
+
+    <!-- Gazebo Sensor: Inertial Measurement Unit (IMU) -->
+    <gazebo reference="imu_link">
+      <sensor name="imu" type="imu">
+        <gz_frame_id>imu_link</gz_frame_id>
+        <topic>/imu</topic>
+        <update_rate>50</update_rate>
+        <always_on>1</always_on>
+        <visualize>false</visualize>
+        <imu>
+          <angular_velocity>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.0002</stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.0002</stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.0002</stddev>
+              </noise>
+            </z>
+          </angular_velocity>
+          <linear_acceleration>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.005</stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.005</stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.005</stddev>
+              </noise>
+            </z>
+          </linear_acceleration>
+        </imu>
+      </sensor>
+    </gazebo>
+
+    <!-- ==================================================================== -->
+    <!-- Macro: Short-Range Ultrasonic Proximity Sonar Sensor                 -->
+    <!-- ==================================================================== -->
+    <xacro:macro name="ultrasonic_sensor" params="name x y z yaw">
+      <joint name="ultrasonic_${name}_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="ultrasonic_${name}_link"/>
+        <origin xyz="${x} ${y} ${z}" rpy="0 0 ${yaw}"/>
+      </joint>
+
+      <link name="ultrasonic_${name}_link">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 ${pi/2} 0"/>
+          <geometry>
+            <cylinder radius="0.010" length="0.008"/>
+          </geometry>
+          <material name="dark_grey"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 ${pi/2} 0"/>
+          <geometry>
+            <cylinder radius="0.010" length="0.008"/>
+          </geometry>
+        </collision>
+        <inertial>
+          <mass value="0.015"/>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <inertia
+            ixx="0.000001" ixy="0.0" ixz="0.0"
+            iyy="0.000001" iyz="0.0"
+            izz="0.000001"/>
+        </inertial>
+      </link>
+
+      <gazebo reference="ultrasonic_${name}_link">
+        <sensor name="ultrasonic_${name}" type="gpu_lidar">
+          <gz_frame_id>ultrasonic_${name}_link</gz_frame_id>
+          <topic>/ultrasonic/${name}</topic>
+          <update_rate>15</update_rate>
+          <ray>
+            <scan>
+              <horizontal>
+                <samples>5</samples>
+                <resolution>1</resolution>
+                <min_angle>-0.2618</min_angle>
+                <max_angle>0.2618</max_angle>
+              </horizontal>
+              <vertical>
+                <samples>3</samples>
+                <resolution>1</resolution>
+                <min_angle>-0.1309</min_angle>
+                <max_angle>0.1309</max_angle>
+              </vertical>
+            </scan>
+            <range>
+              <min>0.04</min>
+              <max>2.50</max>
+              <resolution>0.01</resolution>
+            </range>
+            <noise>
+              <type>gaussian</type>
+              <mean>0.0</mean>
+              <stddev>0.005</stddev>
+            </noise>
+          </ray>
+          <always_on>1</always_on>
+          <visualize>false</visualize>
+        </sensor>
+      </gazebo>
+    </xacro:macro>
+
+    <!-- Ultrasonic Proximity Sensors: Front, Left, and Right Perimeter -->
+    <xacro:ultrasonic_sensor name="front"
+      x="${chassis_length / 2.0 + 0.005}" y="0.0" z="${ground_clearance + 0.050}" yaw="0.0"/>
+    <xacro:ultrasonic_sensor name="left"
+      x="0.140" y="${chassis_width / 2.0 + 0.005}" z="${ground_clearance + 0.050}" yaw="${pi/2}"/>
+    <xacro:ultrasonic_sensor name="right"
+      x="0.140" y="-${chassis_width / 2.0 + 0.005}" z="${ground_clearance + 0.050}" yaw="-${pi/2}"/>
   </xacro:macro>
 </robot>
