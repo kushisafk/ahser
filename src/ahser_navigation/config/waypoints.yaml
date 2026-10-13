@@ -1,0 +1,113 @@
+# ==============================================================================
+# AHSER Named Hospital Waypoints Configuration
+# Autonomous Hospital Service Robot (AHSER)
+# ==============================================================================
+# Default Coordinate Frame: 'map'
+# All coordinates (x, y) are in meters within the hospital map coordinate frame.
+# Yaw is the orientation in radians [-3.14159, +3.14159], where:
+#    0.0000 rad -> Facing East (+X direction, towards hospital interior)
+#   +1.5708 rad -> Facing North (+Y direction, towards Patient & Exam Rooms)
+#   +3.1416 rad -> Facing West (-X direction, towards Dispatch Base / Pharmacy)
+#   -1.5708 rad -> Facing South (-Y direction, towards Nurse Station Desk & ICU)
+#
+# Clearances have been verified against the saved hospital grid map to ensure
+# all goals are located in free navigable space with sufficient obstacle clearance.
+# ==============================================================================
+
+frame_id: "map"
+
+waypoints:
+  # --- Operational Base & Staging ---
+  dispatch_base:
+    x: 0.0
+    y: 0.0
+    yaw: 0.0
+    description: "Robot Dispatch and Docking Base"
+
+  west_corridor:
+    x: 5.0
+    y: -1.0
+    yaw: 0.0
+    description: "West cross-corridor junction"
+
+  central_crossroads:
+    x: 15.0
+    y: -1.0
+    yaw: 0.0
+    description: "Central main hallway intersection"
+
+  # --- Clinical Service Stations ---
+  medicine_station:
+    x: 7.2
+    y: -5.4
+    yaw: 3.1416
+    description: "Pharmacy Medicine Supply Station counter"
+
+  pharmacy:
+    x: 7.2
+    y: -5.4
+    yaw: 3.1416
+    description: "Pharmacy Service Counter (alias for medicine_station)"
+
+  nursing_station:
+    x: 15.0
+    y: -2.6
+    yaw: -1.5708
+    description: "Central Nursing Station reception desk"
+
+  nurse_station:
+    x: 15.0
+    y: -2.6
+    yaw: -1.5708
+    description: "Central Nurse Station (alias for nursing_station)"
+
+  # --- Patient Rooms (North Ward) ---
+  patient_room_101:
+    x: 12.0
+    y: 0.8
+    yaw: 1.5708
+    description: "Patient Room 101 bedside"
+
+  patient_room_102:
+    x: 18.5
+    y: 0.8
+    yaw: 1.5708
+    description: "Patient Room 102 bedside"
+
+  exam_room_103:
+    x: 12.0
+    y: 7.0
+    yaw: 1.5708
+    description: "Examination Room 103"
+
+  exam_room_104:
+    x: 18.5
+    y: 7.0
+    yaw: 1.5708
+    description: "Examination Room 104"
+
+  # --- Intensive Care Unit (South Ward) ---
+  icu_bay_a:
+    x: 11.5
+    y: -5.0
+    yaw: -1.5708
+    description: "Intensive Care Unit (ICU) Bay A"
+
+  icu_bay_b:
+    x: 18.0
+    y: -4.0
+    yaw: -1.5708
+    description: "Intensive Care Unit (ICU) Bay B entrance"
+
+  # --- Specialized Departments (East Wing) ---
+  surgical_suite:
+    x: 27.5
+    y: 0.5
+    yaw: 0.0
+    description: "Surgical Suite entrance"
+
+  clean_utility:
+    x: 27.5
+    y: -2.0
+    yaw: 0.0
+    description: "Clean Utility and Laundry storage"
